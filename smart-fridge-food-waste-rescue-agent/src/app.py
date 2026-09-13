@@ -61,37 +61,43 @@ def run_baseline_chatbot(user_query: str, provider):
     print(f"🤖 Chatbot phản hồi:\n{response}")
 
 
-def run_react_agent(user_query: str, provider, mcp_server: MCPFridgeServer) -> list:
+def run_react_agent(user_query: str, provider, mcp_server: MCPFridgeServer, verbose: bool = True) -> list:
     """Run multi-step ReAct loop with OpenAI-compatible tool messages."""
-    print(f"\n🤖 [REACT AGENT] Câu hỏi: {user_query}")
+    if verbose:
+        print(f"\n🤖 [REACT AGENT] Câu hỏi: {user_query}")
     messages = [{"role": "user", "content": user_query}]
     trace_logs = []
     tools_list = mcp_server.list_tools()
 
     for step in range(1, MAX_ITERATIONS + 1):
         step_start_time = time.time()
-        print(f"\n--- 🔄 ReAct Loop (Step {step}/{MAX_ITERATIONS}) ---")
+        if verbose:
+            print(f"\n--- 🔄 ReAct Loop (Step {step}/{MAX_ITERATIONS}) ---")
         llm_response = provider.generate_with_tools(messages, tools_list, system_prompt=REACT_AGENT_SYSTEM_PROMPT)
         latency_ms = round((time.time() - step_start_time) * 1000, 2)
         thought = llm_response.get("thought", "Đang suy luận...")
-        print(f"🧠 [Thought]: {thought}")
+        if verbose:
+            print(f"🧠 [Thought]: {thought}")
 
         if llm_response.get("type") == "text":
             final_content = llm_response.get("content", "")
-            print(f"🏁 [Final Answer]: {final_content}")
+            if verbose:
+                print(f"🏁 [Final Answer]: {final_content}")
             trace_logs.append({"step": step, "query": user_query, "action_type": "FINAL_ANSWER", "thought": thought, "output": final_content, "latency_ms": latency_ms})
             return trace_logs
 
         if llm_response.get("type") != "tool_call":
             final_content = "Không nhận được phản hồi hợp lệ từ LLM."
-            print(f"🏁 [Final Answer]: {final_content}")
+            if verbose:
+                print(f"🏁 [Final Answer]: {final_content}")
             trace_logs.append({"step": step, "query": user_query, "action_type": "FINAL_ANSWER", "thought": thought, "output": final_content, "latency_ms": latency_ms})
             return trace_logs
 
         tool_name = llm_response.get("tool_name")
         arguments = llm_response.get("arguments", {})
         call_id = llm_response.get("tool_call_id") or f"call_{step}"
-        print(f"🛠️ [Action Proposed]: {tool_name}({arguments})")
+        if verbose:
+            print(f"🛠️ [Action Proposed]: {tool_name}({arguments})")
 
         assistant_message = llm_response.get("assistant_message") or {"role": "assistant", "content": None, "tool_calls": [{"id": call_id, "type": "function", "function": {"name": tool_name, "arguments": json.dumps(arguments, ensure_ascii=False)}}]}
         messages.append(assistant_message)
@@ -99,12 +105,14 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPFridgeServer) -> l
         mcp_result = mcp_server.call_tool(tool_name, arguments)
         obs_data = mcp_result.get("result", {})
         obs_str = json.dumps(obs_data, ensure_ascii=False)
-        print(f"👁️ [Observation từ MCP Server]: {obs_str}")
+        if verbose:
+            print(f"👁️ [Observation từ MCP Server]: {obs_str}")
         messages.append({"role": "tool", "tool_call_id": call_id, "name": tool_name, "content": obs_str})
         trace_logs.append({"step": step, "query": user_query, "action_type": "TOOL_EXECUTION", "tool_name": tool_name, "arguments": arguments, "observation": obs_data, "latency_ms": latency_ms})
 
     final_content = "Đã chạm giới hạn vòng lặp, dừng an toàn."
-    print(f"🏁 [Final Answer]: {final_content}")
+    if verbose:
+        print(f"🏁 [Final Answer]: {final_content}")
     trace_logs.append({"step": MAX_ITERATIONS, "query": user_query, "action_type": "FINAL_ANSWER", "thought": "MAX_ITERATIONS reached", "output": final_content, "latency_ms": 0})
     return trace_logs
 

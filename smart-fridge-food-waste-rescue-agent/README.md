@@ -109,6 +109,17 @@ Smoke test MCP server:
 python src/mcp_server.py
 ```
 
+## Chạy Streamlit web demo
+
+Cài dependency rồi mở UI:
+
+```bash
+pip install -r requirements.txt
+python -m streamlit run src/web_app.py
+```
+
+UI có chat input, history, provider/model display, nút clear chat và Waterfall Trace từng step. Không hiển thị API key/base URL.
+
 ## Artifacts nộp bài
 
 - `config/test_cases.json`: 5 test cases Smart Fridge.
