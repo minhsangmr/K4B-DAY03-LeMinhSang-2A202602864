@@ -1,29 +1,276 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Bạn là trợ lý tủ lạnh thông minh. Hãy cho tôi biết bạn có thể giúp gì để giảm lãng phí thực phẩm?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "LLM trả lời trực tiếp.",
+    "output": "Có thể giúp:\n\n- Kiểm tra tủ lạnh: còn gì, số lượng, hạn dùng.\n- Ưu tiên đồ sắp hết hạn.\n- Gợi ý món ăn từ đồ đang có.\n- Chỉ ra nguyên liệu thiếu nếu muốn nấu món cụ thể.\n- Tạo kế hoạch bữa ăn khi bạn yêu cầu.\n- Tạo danh sách mua bổ sung.\n- Đặt reminder dùng nguyên liệu sắp hết hạn.\n\nCần inventory thật thì cung cấp `user_id`.",
+    "latency_ms": 6657.39
   },
   {
     "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy kiểm tra tủ lạnh của USER001 và cho tôi biết hiện có những thực phẩm nào, đặc biệt món nào sắp hết hạn.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "fridge_query",
     "arguments": {
-      "student_id": "SV2026001"
+      "user_id": "USER001"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "user_id": "USER001",
+      "items": [
+        {
+          "name": "ức gà",
+          "quantity": 300,
+          "unit": "g",
+          "expiry_date": "2026-09-15",
+          "category": "protein"
+        },
+        {
+          "name": "cải bó xôi",
+          "quantity": 1,
+          "unit": "bó",
+          "expiry_date": "2026-09-14",
+          "category": "vegetable"
+        },
+        {
+          "name": "sữa tươi",
+          "quantity": 500,
+          "unit": "ml",
+          "expiry_date": "2026-09-13",
+          "category": "dairy"
+        },
+        {
+          "name": "trứng",
+          "quantity": 4,
+          "unit": "quả",
+          "expiry_date": "2026-09-20",
+          "category": "protein"
+        }
+      ]
+    },
+    "latency_ms": 2057.2
   },
   {
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy kiểm tra tủ lạnh của USER001 và cho tôi biết hiện có những thực phẩm nào, đặc biệt món nào sắp hết hạn.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
-    "latency_ms": 10.0
+    "thought": "LLM trả lời trực tiếp.",
+    "output": "Inventory USER001:\n\n- sữa tươi — 500 ml — dairy — hết hạn 2026-09-13\n- cải bó xôi — 1 bó — vegetable — hết hạn 2026-09-14\n- ức gà — 300 g — protein — hết hạn 2026-09-15\n- trứng — 4 quả — protein — hết hạn 2026-09-20\n\nƯu tiên dùng trước:\n1. sữa tươi — hạn gần nhất, 2026-09-13\n2. cải bó xôi — 2026-09-14\n3. ức gà — 2026-09-15\n\nTrứng còn xa hơn, hạn 2026-09-20.",
+    "latency_ms": 4394.83
+  },
+  {
+    "step": 1,
+    "query": "Hãy tạo cho USER001 một kế hoạch bữa tối ưu tiên các nguyên liệu sắp hết hạn. Nếu cần, hãy tạo danh sách mua bổ sung.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "fridge_query",
+    "arguments": {
+      "user_id": "USER001"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "user_id": "USER001",
+      "items": [
+        {
+          "name": "ức gà",
+          "quantity": 300,
+          "unit": "g",
+          "expiry_date": "2026-09-15",
+          "category": "protein"
+        },
+        {
+          "name": "cải bó xôi",
+          "quantity": 1,
+          "unit": "bó",
+          "expiry_date": "2026-09-14",
+          "category": "vegetable"
+        },
+        {
+          "name": "sữa tươi",
+          "quantity": 500,
+          "unit": "ml",
+          "expiry_date": "2026-09-13",
+          "category": "dairy"
+        },
+        {
+          "name": "trứng",
+          "quantity": 4,
+          "unit": "quả",
+          "expiry_date": "2026-09-20",
+          "category": "protein"
+        }
+      ]
+    },
+    "latency_ms": 2826.98
+  },
+  {
+    "step": 2,
+    "query": "Hãy tạo cho USER001 một kế hoạch bữa tối ưu tiên các nguyên liệu sắp hết hạn. Nếu cần, hãy tạo danh sách mua bổ sung.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "create_food_plan",
+    "arguments": {
+      "user_id": "USER001",
+      "meal_name": "Ức gà áp chảo cải bó xôi sốt sữa",
+      "ingredients_to_use": [
+        "sữa tươi 500ml",
+        "cải bó xôi 1 bó",
+        "ức gà 300g"
+      ],
+      "missing_items": [
+        "tỏi",
+        "muối",
+        "tiêu",
+        "dầu ăn"
+      ],
+      "reminder_time": "",
+      "priority": "use_expiring_items_first"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "plan": {
+        "plan_id": "PLAN-USER001-0001",
+        "user_id": "USER001",
+        "meal_name": "Ức gà áp chảo cải bó xôi sốt sữa",
+        "ingredients_to_use": [
+          "sữa tươi 500ml",
+          "cải bó xôi 1 bó",
+          "ức gà 300g"
+        ],
+        "missing_items": [
+          "tỏi",
+          "muối",
+          "tiêu",
+          "dầu ăn"
+        ],
+        "priority": "use_expiring_items_first",
+        "reminder_time": ""
+      }
+    },
+    "latency_ms": 5275.61
+  },
+  {
+    "step": 3,
+    "query": "Hãy tạo cho USER001 một kế hoạch bữa tối ưu tiên các nguyên liệu sắp hết hạn. Nếu cần, hãy tạo danh sách mua bổ sung.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "LLM trả lời trực tiếp.",
+    "output": "Kế hoạch bữa tối đã tạo: `PLAN-USER001-0001`\n\nMón: Ức gà áp chảo cải bó xôi sốt sữa\n\nƯu tiên dùng:\n- sữa tươi 500ml, hết hạn 2026-09-13\n- cải bó xôi 1 bó, hết hạn 2026-09-14\n- ức gà 300g, hết hạn 2026-09-15\n\nCần mua bổ sung:\n- tỏi\n- muối\n- tiêu\n- dầu ăn\n\nTrứng còn 4 quả, hết hạn 2026-09-20, chưa cần ưu tiên bằng các món trên.",
+    "latency_ms": 4212.35
+  },
+  {
+    "step": 1,
+    "query": "Tối nay USER001 muốn ăn món ít calo. Hãy kiểm tra tủ lạnh, ưu tiên thực phẩm sắp hết hạn, rồi tạo meal plan và shopping list cho những nguyên liệu còn thiếu.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "fridge_query",
+    "arguments": {
+      "user_id": "USER001"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "user_id": "USER001",
+      "items": [
+        {
+          "name": "ức gà",
+          "quantity": 300,
+          "unit": "g",
+          "expiry_date": "2026-09-15",
+          "category": "protein"
+        },
+        {
+          "name": "cải bó xôi",
+          "quantity": 1,
+          "unit": "bó",
+          "expiry_date": "2026-09-14",
+          "category": "vegetable"
+        },
+        {
+          "name": "sữa tươi",
+          "quantity": 500,
+          "unit": "ml",
+          "expiry_date": "2026-09-13",
+          "category": "dairy"
+        },
+        {
+          "name": "trứng",
+          "quantity": 4,
+          "unit": "quả",
+          "expiry_date": "2026-09-20",
+          "category": "protein"
+        }
+      ]
+    },
+    "latency_ms": 3003.04
+  },
+  {
+    "step": 2,
+    "query": "Tối nay USER001 muốn ăn món ít calo. Hãy kiểm tra tủ lạnh, ưu tiên thực phẩm sắp hết hạn, rồi tạo meal plan và shopping list cho những nguyên liệu còn thiếu.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "create_food_plan",
+    "arguments": {
+      "user_id": "USER001",
+      "meal_name": "Ức gà áp chảo với salad cải bó xôi ít calo",
+      "ingredients_to_use": [
+        "ức gà 300g",
+        "cải bó xôi 1 bó"
+      ],
+      "missing_items": [
+        "chanh",
+        "tỏi",
+        "dưa leo",
+        "cà chua bi"
+      ],
+      "reminder_time": "",
+      "priority": "use_expiring_items_first"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "plan": {
+        "plan_id": "PLAN-USER001-0002",
+        "user_id": "USER001",
+        "meal_name": "Ức gà áp chảo với salad cải bó xôi ít calo",
+        "ingredients_to_use": [
+          "ức gà 300g",
+          "cải bó xôi 1 bó"
+        ],
+        "missing_items": [
+          "chanh",
+          "tỏi",
+          "dưa leo",
+          "cà chua bi"
+        ],
+        "priority": "use_expiring_items_first",
+        "reminder_time": ""
+      }
+    },
+    "latency_ms": 5335.25
+  },
+  {
+    "step": 3,
+    "query": "Tối nay USER001 muốn ăn món ít calo. Hãy kiểm tra tủ lạnh, ưu tiên thực phẩm sắp hết hạn, rồi tạo meal plan và shopping list cho những nguyên liệu còn thiếu.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "LLM trả lời trực tiếp.",
+    "output": "Meal plan đã tạo: `PLAN-USER001-0002`\n\nMón tối ít calo: Ức gà áp chảo với salad cải bó xôi.\n\nƯu tiên dùng:\n- Cải bó xôi 1 bó, hết hạn 2026-09-14\n- Ức gà 300g, hết hạn 2026-09-15\n\nKhông dùng sữa tươi dù hết hạn gần hơn 2026-09-13, vì không hợp món ít calo này.\n\nShopping list cần mua:\n- chanh\n- tỏi\n- dưa leo\n- cà chua bi",
+    "latency_ms": 4591.69
+  },
+  {
+    "step": 1,
+    "query": "Hãy kiểm tra tủ lạnh của USER999 và lập kế hoạch bữa tối từ nguyên liệu hiện có.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "fridge_query",
+    "arguments": {
+      "user_id": "USER999"
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "message": "Không tìm thấy inventory cho user_id 'USER999'"
+    },
+    "latency_ms": 2259.96
+  },
+  {
+    "step": 2,
+    "query": "Hãy kiểm tra tủ lạnh của USER999 và lập kế hoạch bữa tối từ nguyên liệu hiện có.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "LLM trả lời trực tiếp.",
+    "output": "Không tìm thấy inventory cho `USER999`.\n\nKhông thể lập kế hoạch bữa tối từ nguyên liệu hiện có. Cần kiểm tra lại `user_id` hoặc thêm dữ liệu tủ lạnh trước.",
+    "latency_ms": 4267.47
   }
 ]

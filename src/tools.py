@@ -1,118 +1,77 @@
-"""
-🛠️ TOOL DEFINITIONS & EXECUTION BACKEND
-Mã nguồn chứa danh sách Tool Schemas (JSON Schema) và Execution Layer phục vụ cho MCP Server.
-"""
+"""Smart Fridge tool schemas and execution backend."""
 
 import json
-from typing import Dict, Any
-
-# ==============================================================================
-# 1. KHAI BÁO TOOL SCHEMAS CHUẨN NATIVE JSON SCHEMA (TASK 1.2)
-# ==============================================================================
+from typing import Any, Dict, List, Optional
 
 TOOLS_SCHEMA = [
-    # Tool 1: Đã được định nghĩa mẫu sẵn cho Học viên tham khảo
     {
-        "name": "academic_query",
-        "description": "Tra cứu hồ sơ và thông tin học vụ của sinh viên VinUni bằng mã sinh viên.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "student_id": {
-                    "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')"
-                }
-            },
-            "required": ["student_id"]
-        }
+        "name": "fridge_query",
+        "description": "Tra cứu inventory hiện có trong tủ lạnh của người dùng, gồm số lượng, đơn vị, nhóm thực phẩm và hạn sử dụng.",
+        "parameters": {"type": "object", "properties": {"user_id": {"type": "string", "description": "Mã người dùng/chủ tủ lạnh, ví dụ USER001"}}, "required": ["user_id"], "additionalProperties": False},
     },
-    
-    # --------------------------------------------------------------------------
-    # TODO 1.2: HỌC VIÊN HOÀN THIỆN TOOL SCHEMA CHO 'schedule_appointment'
-    # 🎯 YÊU CẦU THIẾT KẾ SCHEMA (JSON SCHEMA STANDARD):
-    # 1. Tool dùng để đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.
-    # 2. Thiết kế các tham số (properties) để LLM trích xuất:
-    #    - student_id (string): Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')
-    #    - datetime_str (string): Thời gian hẹn (ví dụ: '14:00 15/09/2026')
-    #    - advisor_name (string): Tên cố vấn học tập
-    # 3. Khai báo danh sách các trường bắt buộc (required).
-    # --------------------------------------------------------------------------
     {
-        "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "name": "create_food_plan",
+        "description": "Tạo kế hoạch bữa ăn dựa trên inventory đã tra cứu, lưu danh sách nguyên liệu sử dụng, nguyên liệu cần mua thêm và thời gian nhắc nếu có.",
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "user_id": {"type": "string"},
+                "meal_name": {"type": "string"},
+                "ingredients_to_use": {"type": "array", "items": {"type": "string"}},
+                "missing_items": {"type": "array", "items": {"type": "string"}},
+                "reminder_time": {"type": "string", "description": "Thời gian nhắc dạng chuỗi ISO-8601; bỏ trống nếu không cần"},
+                "priority": {"type": "string", "enum": ["use_expiring_items_first", "normal"]},
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
-        }
-    }
+            "required": ["user_id", "meal_name", "ingredients_to_use", "missing_items", "priority"],
+            "additionalProperties": False,
+        },
+    },
 ]
 
-# ==============================================================================
-# 2. MÔ PHỎNG DỮ LIỆU & HÀM THỰC THI TOOL (EXECUTION LAYER)
-# ==============================================================================
-
-MOCK_DATABASE = {
-    "SV2026001": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
-    },
-    "SV2026002": {
-        "full_name": "Trần Thị Bình",
-        "class": "AI-K4",
-        "gpa": 3.60,
-        "email": "binh.tt@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "TS. Lê Thị B"
-    }
+FRIDGE_DB: Dict[str, List[Dict[str, Any]]] = {
+    "USER001": [
+        {"name": "ức gà", "quantity": 300, "unit": "g", "expiry_date": "2026-09-15", "category": "protein"},
+        {"name": "cải bó xôi", "quantity": 1, "unit": "bó", "expiry_date": "2026-09-14", "category": "vegetable"},
+        {"name": "sữa tươi", "quantity": 500, "unit": "ml", "expiry_date": "2026-09-13", "category": "dairy"},
+        {"name": "trứng", "quantity": 4, "unit": "quả", "expiry_date": "2026-09-20", "category": "protein"},
+    ]
 }
 
-
-def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu học vụ theo mã sinh viên"""
-    student = MOCK_DATABASE.get(student_id.strip().upper())
-    if student:
-        return json.dumps({
-            "status": "SUCCESS",
-            "student_id": student_id,
-            "data": student
-        }, ensure_ascii=False)
-    else:
-        return json.dumps({
-            "status": "NOT_FOUND",
-            "message": f"Không tìm thấy dữ liệu sinh viên có mã '{student_id}'"
-        }, ensure_ascii=False)
+FOOD_PLANS_DB: List[Dict[str, Any]] = []
 
 
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ"""
-    return json.dumps({
-        "status": "SUCCESS",
-        "booking_id": f"BK-{student_id}-99",
-        "student_id": student_id,
-        "datetime": datetime_str,
-        "advisor": advisor_name,
-        "message": f"Đặt lịch thành công cho sinh viên {student_id} với {advisor_name} vào lúc {datetime_str}."
-    }, ensure_ascii=False)
+def execute_fridge_query(user_id: str) -> str:
+    user_id = user_id.strip().upper()
+    items = FRIDGE_DB.get(user_id)
+    if items is None:
+        return json.dumps({"status": "NOT_FOUND", "message": f"Không tìm thấy inventory cho user_id '{user_id}'"}, ensure_ascii=False)
+    return json.dumps({"status": "SUCCESS", "user_id": user_id, "items": items}, ensure_ascii=False)
 
 
-# Router gọi tool thực tế
-TOOL_ROUTER = {
-    "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
-}
+def execute_create_food_plan(user_id: str, meal_name: str, ingredients_to_use: List[str], missing_items: List[str], priority: str, reminder_time: Optional[str] = None) -> str:
+    if not user_id or not meal_name:
+        return json.dumps({"status": "ERROR", "message": "user_id và meal_name là bắt buộc."}, ensure_ascii=False)
+    if not isinstance(ingredients_to_use, list) or not isinstance(missing_items, list):
+        return json.dumps({"status": "ERROR", "message": "ingredients_to_use và missing_items phải là list."}, ensure_ascii=False)
+    if priority not in {"use_expiring_items_first", "normal"}:
+        return json.dumps({"status": "ERROR", "message": "priority không hợp lệ."}, ensure_ascii=False)
+    user_id = user_id.strip().upper()
+    plan = {"plan_id": f"PLAN-{user_id}-{len(FOOD_PLANS_DB) + 1:04d}", "user_id": user_id, "meal_name": meal_name, "ingredients_to_use": ingredients_to_use, "missing_items": missing_items, "priority": priority, "reminder_time": reminder_time}
+    FOOD_PLANS_DB.append(plan)
+    return json.dumps({"status": "SUCCESS", "plan": plan}, ensure_ascii=False)
+
+
+TOOL_ROUTER = {"fridge_query": execute_fridge_query, "create_food_plan": execute_create_food_plan}
+
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
-    """Hàm trung chuyển thực thi tool"""
-    if tool_name in TOOL_ROUTER:
-        try:
-            return TOOL_ROUTER[tool_name](**arguments)
-        except Exception as e:
-            return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
-    return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+    if not isinstance(arguments, dict):
+        return json.dumps({"status": "ERROR", "message": "arguments phải là dict."}, ensure_ascii=False)
+    handler = TOOL_ROUTER.get(tool_name)
+    if handler is None:
+        return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+    try:
+        return handler(**arguments)
+    except Exception as exc:
+        return json.dumps({"status": "EXECUTION_ERROR", "error": str(exc)}, ensure_ascii=False)
+

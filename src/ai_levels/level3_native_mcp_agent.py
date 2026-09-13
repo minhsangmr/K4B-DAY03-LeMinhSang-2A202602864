@@ -1,22 +1,16 @@
-"""
-📚 [REFERENCE ONLY / CODE MẪU THAM KHẢO]
-🧠 CẤP ĐỘ 3: NATIVE MCP AGENT (Native Tool Calling + MCP Server Integration)
-⚠️ Lưu ý: File này chỉ dùng để đọc tham khảo kiến trúc. Không chỉnh sửa hay debug file này.
-"""
+"""Reference demo for native MCP tool calling in Smart Fridge domain."""
 
-import json
-
-def get_weather(city: str) -> str:
-    return f"Thời tiết {city}: 28°C, Nắng nhẹ."
 
 def run_level3_demo():
     print("=== DEMO CẤP ĐỘ 3: NATIVE MCP AGENT ===")
-    user_goal = "Tra cứu thông tin học vụ sinh viên SV2026001"
-    print(f"🎯 Goal: {user_goal}")
-    print("🧠 [Thought]: Phát sinh Native Tool Call 'academic_query'...")
-    print("🛠️ [Native Tool Call]: academic_query({'student_id': 'SV2026001'})")
-    print("👁️ [MCP Server Observation]: {'student_id': 'SV2026001', 'name': 'Nguyễn Văn An', 'gpa': 3.85}")
-    print("🏁 [Final Answer]: Học viên Nguyễn Văn An (SV2026001) đạt GPA 3.85.")
+    print("🎯 Goal: Kiểm tra inventory USER001 rồi tạo meal plan")
+    print("🧠 [Thought]: Cần gọi fridge_query trước.")
+    print("🛠️ [Native Tool Call]: fridge_query({'user_id': 'USER001'})")
+    print("👁️ [MCP Server Observation]: {'status': 'SUCCESS', 'items': ['sữa tươi', 'cải bó xôi', 'ức gà']}")
+    print("🛠️ [Native Tool Call]: create_food_plan({'user_id': 'USER001', 'priority': 'use_expiring_items_first'})")
+    print("🏁 [Final Answer]: Đã tạo meal plan ưu tiên nguyên liệu sắp hết hạn.")
+
 
 if __name__ == "__main__":
     run_level3_demo()
+
