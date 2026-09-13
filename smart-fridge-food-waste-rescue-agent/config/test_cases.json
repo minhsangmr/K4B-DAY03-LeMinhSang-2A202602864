@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Bạn là trợ lý tủ lạnh thông minh. Hãy cho tôi biết bạn có thể giúp gì để giảm lãng phí thực phẩm?",
+    "expected_behavior": "Trả lời trực tiếp, không gọi tool nếu chỉ hỏi capability chung.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy kiểm tra tủ lạnh của USER001 và cho tôi biết hiện có những thực phẩm nào, đặc biệt món nào sắp hết hạn.",
+    "expected_behavior": "Agent gọi fridge_query với user_id=USER001 và trả lời dựa trên observation.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "action_workflow",
+    "question": "Hãy tạo cho USER001 một kế hoạch bữa tối ưu tiên các nguyên liệu sắp hết hạn. Nếu cần, hãy tạo danh sách mua bổ sung.",
+    "expected_behavior": "Agent tra cứu fridge_query trước, sau đó nếu đủ dữ kiện thì gọi create_food_plan.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Tối nay USER001 muốn ăn món ít calo. Hãy kiểm tra tủ lạnh, ưu tiên thực phẩm sắp hết hạn, rồi tạo meal plan và shopping list cho những nguyên liệu còn thiếu.",
+    "expected_behavior": "Chuỗi ReAct đa bước: fridge_query -> observation -> create_food_plan -> observation -> final answer.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Hãy kiểm tra tủ lạnh của USER999 và lập kế hoạch bữa tối từ nguyên liệu hiện có.",
+    "expected_behavior": "fridge_query trả NOT_FOUND; Agent phản hồi lịch sự, không bịa inventory và không gọi create_food_plan từ dữ liệu tưởng tượng.",
+    "complexity": "Medium"
+  }
+]
